@@ -1,6 +1,11 @@
-export function statuspageIoBanner() {
+<%@ taglib prefix="jcr" uri="http://www.jahia.org/tags/jcr" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="template" uri="http://www.jahia.org/tags/templateLib" %>
+
+<script>(function(){
+
     var frame = document.createElement('iframe');
-    frame.src = 'https://tbc0zy2gb6bf.statuspage.io/embed/frame';
+    frame.src = 'https://0tm5g9qc7sgj.statuspage.io/embed/frame';
     frame.style.position = 'fixed';
     frame.style.border = 'none';
     frame.style.boxShadow = '0 20px 32px -8px rgba(9,20,66,0.25)';
@@ -29,25 +34,29 @@ export function statuspageIoBanner() {
     document.body.appendChild(frame);
 
     var actions = {
-        showFrame: function () {
+        showFrame: function() {
             frame.tabIndex = '0';
             if (mobile) {
                 frame.style.left = '0';
                 frame.style.bottom = '0';
-            } else {
+            }
+            else {
                 frame.style.left = 'auto';
-                frame.style.right = '60px';
+                frame.style.right = '60px'
             }
         },
-        dismissFrame: function () {
+        dismissFrame: function(){
             frame.style.left = '-9999px';
             frame.tabIndex = '-1';
         }
-    };
+    }
 
-    window.addEventListener('message', function (event) {
+    window.addEventListener('message', function(event){
         if (event.data.action && actions.hasOwnProperty(event.data.action)) {
             actions[event.data.action](event.data);
         }
     }, false);
-}
+
+    window.statusEmbedTest = actions.showFrame;
+})();
+</script>

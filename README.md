@@ -1,10 +1,15 @@
 # Jahia Statuspage.io
 
-A Jahia module that embeds the [Jahia status page](https://status.jahia.com) widget inside the Jahia administration interface. It injects the Statuspage.io iframe into the UI so that administrators can see the current Jahia platform status without leaving the back office.
+A Jahia module that embeds the [Jahia status page](https://status.jahia.com) widget in two ways:
+
+- **Back office** — injected automatically into the Jahia administration interface via the UI Extender registry
+- **Website** — available as a draggable `jnt:statuspageIoWidget` component that editors can drop onto any page in jContent
 
 ## How it works
 
 On initialization, the module registers a callback with the Jahia UI Extender registry (target `jahiaApp-init:60`). That callback creates a fixed-position iframe pointing to `https://0tm5g9qc7sgj.statuspage.io/embed/frame` and appends it to the document body. The iframe communicates with the host page via `postMessage` to show or dismiss itself depending on the current Jahia status.
+
+The same logic is available as a website component through the `jnt:statuspageIoWidget` nodetype and its JSP view, which injects the iframe directly into the rendered page.
 
 ## Requirements
 
@@ -51,8 +56,10 @@ src/
     resources/
       javascript/apps/                    # Webpack build output
       javascript/locales/en.json          # i18n strings
-      META-INF/definitions.cnd            # Jahia content node definitions
-      resources/jahia-statuspage-io.properties
+      META-INF/definitions.cnd            # Jahia content node definitions (jnt:statuspageIoWidget)
+      jnt_statuspageIoWidget/
+        html/statuspageIoWidget.jsp       # JSP view — injects the Statuspage.io iframe into a page
+      resources/jahia-statuspage-io.properties  # Component labels
 ```
 
 ## License
