@@ -22,7 +22,7 @@ module.exports = (env, argv) => {
         },
         output: {
             path: path.resolve(__dirname, 'src/main/resources/javascript/apps/'),
-            filename: 'jahia-status-io.bundle.js',
+            filename: 'jahia-statuspage-io.bundle.js',
             chunkFilename: '[name].jahia.[chunkhash:6].js'
         },
         resolve: {
@@ -89,7 +89,7 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new ModuleFederationPlugin(getModuleFederationConfig(packageJson, {
-                library: { type: "assign", name: "appShell.remotes.jahiaStatusIo" },
+                library: { type: "assign", name: "appShell.remotes.jahiaStatuspageIo" },
                 remotes: {
                     '@jahia/jcontent': 'appShell.remotes.jcontent'
                 }

@@ -1,5 +1,5 @@
 {
-  "name": "@jahia/jahia-status-io",
+  "name": "@jahia/jahia-statuspage-io",
   "version": "1.0.0-SNAPSHOT",
   "scripts": {
     "build": "yarn webpack",
@@ -20,9 +20,9 @@
     "lint:fix": "yarn lint:js:fix && yarn lint:scss:fix",
     "sync-pom": "sync-pom-version --use-yarn"
   },
-  "description": "Retrieve status from Status.io",
+  "description": "Retrieve status from Statuspage.io",
   "main": "index.js",
-  "repository": "git@github.com:Jahia/jahia-status-io.git",
+  "repository": "git@github.com:Jahia/jahia-statuspage-io.git",
   "author": "Jahia Customer Support Team <support@jahia.com>",
   "license": "MIT",
   "jahia": {
