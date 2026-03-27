@@ -23,4 +23,8 @@ public class GqlStatuspageIoConfig {
     public String getPageId() {
         return configService.getConfig().pageId();
     }
+
+    public StatuspageIoConfigService getConfigService() {
+        return configService;
+    }
 }

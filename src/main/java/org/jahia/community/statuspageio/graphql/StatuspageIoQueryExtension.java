@@ -14,7 +14,7 @@ public class StatuspageIoQueryExtension {
     @GraphQLName("statuspageIo")
     @GraphQLNonNull
     @GraphQLDescription("Retrieve the Statuspage.io module configuration")
-    public static GqlStatuspageIoConfig getStatuspageIo() {
+    public GqlStatuspageIoConfig getStatuspageIo() {
         return new GqlStatuspageIoConfig();
     }
 }
