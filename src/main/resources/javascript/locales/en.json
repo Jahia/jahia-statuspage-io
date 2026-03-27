@@ -1,7 +1,7 @@
 {
   "label": {
     "admin": {
-      "config": "Statuspage.io Configuration",
+      "config": "Statuspage.io",
       "intro": "Configure the Statuspage.io page identifier used to embed the status widget in the Jahia administration interface.",
       "pageId": "Page ID",
       "save": "Save",

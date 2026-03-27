@@ -2,4 +2,4 @@
 <jmix = 'http://www.jahia.org/jahia/mix/1.0'>
 
 [jnt:statuspageIoWidget] > jnt:content, jmix:droppableContent
- - pageId (string) = '0tm5g9qc7sgj' mandatory autocreated
+ - pageId (string) mandatory

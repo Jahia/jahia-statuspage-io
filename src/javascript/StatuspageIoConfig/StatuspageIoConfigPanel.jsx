@@ -75,7 +75,7 @@ const ConfigForm = () => {
                             id="statuspageio-pageId"
                             value={pageId}
                             onChange={e => setPageId(e.target.value)}
-                            placeholder="0tm5g9qc7sgj"
+                            placeholder=""
                         />
                     </Field>
 
