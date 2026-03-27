@@ -5,7 +5,7 @@
 <script>(function(){
 
     var frame = document.createElement('iframe');
-    frame.src = 'https://0tm5g9qc7sgj.statuspage.io/embed/frame';
+    frame.src = 'https://${currentNode.properties['pageId'].string}.statuspage.io/embed/frame';
     frame.style.position = 'fixed';
     frame.style.border = 'none';
     frame.style.boxShadow = '0 20px 32px -8px rgba(9,20,66,0.25)';

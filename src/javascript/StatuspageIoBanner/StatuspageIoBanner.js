@@ -1,6 +1,6 @@
-export function statuspageIoBanner() {
+export function statuspageIoBanner(pageId) {
     var frame = document.createElement('iframe');
-    frame.src = 'https://tbc0zy2gb6bf.statuspage.io/embed/frame';
+    frame.src = 'https://' + pageId + '.statuspage.io/embed/frame';
     frame.style.position = 'fixed';
     frame.style.border = 'none';
     frame.style.boxShadow = '0 20px 32px -8px rgba(9,20,66,0.25)';
