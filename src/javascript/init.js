@@ -1,7 +1,9 @@
 import React from 'react';
+import {print} from 'graphql';
 import {registry} from '@jahia/ui-extender';
 import {statuspageIoBanner} from './StatuspageIoBanner/StatuspageIoBanner';
 import {StatuspageIoConfigPanel} from './StatuspageIoConfig/StatuspageIoConfigPanel';
+import {GET_STATUSPAGE_CONFIG} from './StatuspageIoConfig/StatuspageIoConfigPanel.gql';
 
 window.jahia.i18n.loadNamespaces('jahia-statuspage-io');
 
@@ -9,7 +11,7 @@ window.jahia.i18n.loadNamespaces('jahia-statuspage-io');
 const STATUSPAGE_PAGE_ID = fetch('/modules/graphql', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({query: '{ statuspageIo { pageId } }'})
+    body: JSON.stringify({query: print(GET_STATUSPAGE_CONFIG)})
 })
     .then(response => response.json())
     .then(data => data.data.statuspageIo.pageId);

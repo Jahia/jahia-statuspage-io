@@ -2,9 +2,13 @@
   "label": {
     "admin": {
       "config": "Statuspage.io Configuration",
+      "intro": "Configure the Statuspage.io page identifier used to embed the status widget in the Jahia administration interface.",
       "pageId": "Page ID",
       "save": "Save",
-      "saved": "Saved successfully",
+      "saving": "Saving...",
+      "saved": "Configuration saved successfully.",
+      "saveError": "Failed to save configuration. Please try again.",
+      "cancel": "Cancel",
       "loading": "Loading...",
       "error": "Error loading configuration"
     }
