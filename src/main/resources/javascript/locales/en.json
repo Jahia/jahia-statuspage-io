@@ -1,4 +1,12 @@
 {
   "label": {
+    "admin": {
+      "config": "Statuspage.io Configuration",
+      "pageId": "Page ID",
+      "save": "Save",
+      "saved": "Saved successfully",
+      "loading": "Loading...",
+      "error": "Error loading configuration"
+    }
   }
 }
