@@ -1,0 +1,119 @@
+import {DocumentNode} from 'graphql'
+
+describe('Statuspage.io Configuration', () => {
+    const adminPath = '/jahia/administration/jahia-statuspage-io-config'
+    let getStatuspageIoConfig: DocumentNode
+    let updateStatuspageIoConfig: DocumentNode
+
+    getStatuspageIoConfig = require('graphql-tag/loader!../fixtures/graphql/query/getStatuspageIoConfig.graphql')
+    updateStatuspageIoConfig = require('graphql-tag/loader!../fixtures/graphql/mutation/updateStatuspageIoConfig.graphql')
+
+    before(() => {
+        cy.login()
+        // Reset pageId to empty before the suite to guarantee a clean state
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: ''},
+        })
+    })
+
+    it('check admin panel renders with Page ID field and action buttons', () => {
+        cy.login()
+        cy.visit(adminPath)
+
+        cy.get('#statuspageio-pageId').should('be.visible')
+
+        // Action buttons
+        cy.contains('button', 'Save').should('be.visible')
+        cy.contains('button', 'Cancel').should('be.visible')
+    })
+
+    it('saves a pageId and shows a success alert', () => {
+        cy.login()
+        cy.visit(adminPath)
+        
+        cy.get('[id="statuspageio-pageId-input"]').clear().type('my-page-id')
+        cy.contains('button', 'Save').click()
+        
+        cy.contains('Configuration saved successfully.').should('be.visible')
+        
+        // Verify persistence via GraphQL
+        cy.apollo({query: getStatuspageIoConfig})
+            .its('data.statuspageIo.pageId')
+            .should('equal', 'my-page-id')
+    })
+
+    it('cancels edits and reverts the form to the last saved value', () => {
+        cy.login()
+        // Pre-load a known value via API
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: 'original-page-id'},
+        })
+        
+        cy.visit(adminPath)
+        cy.get('#statuspageio-pageId-input').should('have.value', 'original-page-id')
+        
+        // Modify without saving
+        cy.get('#statuspageio-pageId-input').clear().type('changed-page-id')
+        cy.get('#statuspageio-pageId-input').should('have.value', 'changed-page-id')
+        
+        cy.contains('button', 'Cancel').click()
+        
+        // Value should revert to the last saved one
+        cy.get('#statuspageio-pageId-input').should('have.value', 'original-page-id')
+    })
+
+    it('sets and retrieves pageId via the GraphQL API', () => {
+        cy.login()
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: 'api-page-id'},
+        }).then((result: {data: {updateStatuspageIoConfig: boolean}}) => {
+            expect(result.data.updateStatuspageIoConfig).to.be.true
+        })
+
+        cy.apollo({query: getStatuspageIoConfig})
+            .its('data.statuspageIo.pageId')
+            .should('equal', 'api-page-id')
+    })
+
+    it('clears the pageId by saving an empty value', () => {
+        cy.login()
+        // Pre-load a value via API
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: 'to-be-cleared'},
+        })
+        
+        cy.visit(adminPath)
+        cy.get('#statuspageio-pageId-input').should('have.value', 'to-be-cleared')
+        
+        cy.get('#statuspageio-pageId-input').clear()
+        cy.contains('button', 'Save').click()
+        cy.contains('Configuration saved successfully.').should('be.visible')
+        
+        cy.apollo({query: getStatuspageIoConfig})
+            .its('data.statuspageIo.pageId')
+            .should('be.empty')
+    })
+
+    it('reloads saved value when navigating back to the settings page', () => {
+        cy.login()
+        // Save via API
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: 'persist-page-id'},
+        })
+        
+        // First visit
+        cy.visit(adminPath)
+        cy.get('#statuspageio-pageId-input').should('have.value', 'persist-page-id')
+        
+        // Navigate away and come back
+        cy.visit('/jahia/administration')
+        cy.visit(adminPath)
+        
+        cy.get('#statuspageio-pageId-input').should('have.value', 'persist-page-id')
+    })
+})

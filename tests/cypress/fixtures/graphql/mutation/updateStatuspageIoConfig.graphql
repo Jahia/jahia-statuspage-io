@@ -1,0 +1,3 @@
+mutation UpdateStatuspageIoConfig($pageId: String!) {
+    updateStatuspageIoConfig(pageId: $pageId)
+}
