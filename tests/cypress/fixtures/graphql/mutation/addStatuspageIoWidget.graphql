@@ -1,0 +1,12 @@
+mutation AddStatuspageIoWidget($parentPath: String!, $name: String!, $pageId: String!) {
+    jcr(workspace: EDIT) {
+        mutateNode(pathOrId: $parentPath) {
+            addChild(name: $name, primaryNodeType: "jnt:statuspageIoWidget") {
+                mutateProperty(name: "pageId") {
+                    setValue(value: $pageId)
+                }
+                publish
+            }
+        }
+    }
+}
