@@ -116,4 +116,31 @@ describe('Statuspage.io Configuration', () => {
         
         cy.get('#statuspageio-pageId-input').should('have.value', 'persist-page-id')
     })
+
+    it('displays the statuspage.io banner for page ID w05wsjm4g1q6', () => {
+        cy.login()
+        // Configure the page ID via API
+        cy.apollo({
+            mutation: updateStatuspageIoConfig,
+            variables: {pageId: 'w05wsjm4g1q6'},
+        })
+
+        // Visit the admin UI — the module initialises and injects the iframe
+        cy.visit('/jahia/administration')
+
+        // The iframe must be present with the correct statuspage.io source
+        cy.get('iframe[title="Jahia Status"]')
+            .should('exist')
+            .and('have.attr', 'src', 'https://w05wsjm4g1q6.statuspage.io/embed/frame')
+
+        // Simulate the postMessage that statuspage.io sends to reveal the banner
+        cy.window().then(win => {
+            win.postMessage({action: 'showFrame'}, '*')
+        })
+
+        // After showFrame the iframe should slide on-screen (right moves from -9999px to 60px)
+        cy.get('iframe[title="Jahia Status"]').should(iframe => {
+            expect(iframe[0].style.right).to.equal('60px')
+        })
+    })
 })
