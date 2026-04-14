@@ -72,7 +72,7 @@ const ConfigForm = () => {
                 <div className={styles.statuspageio_form}>
                     <Field label={t('label.admin.pageId')} id="statuspageio-pageId">
                         <Input
-                            id="statuspageio-pageId"
+                            id="statuspageio-pageId-input"
                             value={pageId}
                             onChange={e => setPageId(e.target.value)}
                             placeholder=""
