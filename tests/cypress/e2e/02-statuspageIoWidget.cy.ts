@@ -15,13 +15,12 @@ const PAGE_ID = 'w05wsjm4g1q6';
 describe('Statuspage.io Widget on Website', () => {
     const siteKey = 'digitall';
 
-    let addStatuspageIoWidget: DocumentNode;
-    let deleteNode: DocumentNode;
-    let publishNode: DocumentNode;
-
-    addStatuspageIoWidget = require('graphql-tag/loader!../fixtures/graphql/mutation/addStatuspageIoWidget.graphql');
-    deleteNode = require('graphql-tag/loader!../fixtures/graphql/mutation/deleteNode.graphql');
-    publishNode = require('graphql-tag/loader!../fixtures/graphql/mutation/publishNode.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const addStatuspageIoWidget: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/addStatuspageIoWidget.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const deleteNode: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/deleteNode.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const publishNode: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/publishNode.graphql');
 
     before(() => {
         cy.login();
@@ -41,7 +40,7 @@ describe('Statuspage.io Widget on Website', () => {
             },
             auth: {user: 'root', pass: Cypress.env('SUPER_USER_PASSWORD')},
             failOnStatusCode: false,
-            log: false,
+            log: false
         });
 
         // Add jnt:statuspageIoWidget under footer-1 with the configured pageId,
@@ -51,8 +50,8 @@ describe('Statuspage.io Widget on Website', () => {
             variables: {
                 parentPath: COMPONENT_PARENT,
                 name: COMPONENT_NAME,
-                pageId: PAGE_ID,
-            },
+                pageId: PAGE_ID
+            }
         });
     });
 
