@@ -7,7 +7,7 @@ import org.jahia.modules.graphql.provider.dxm.DXGraphQLProvider;
 @GraphQLDescription("Statuspage.io queries")
 public class StatuspageIoQueryExtension {
 
-    public StatuspageIoQueryExtension(DXGraphQLProvider.Query query) {
+    private StatuspageIoQueryExtension() {
     }
 
     @GraphQLField

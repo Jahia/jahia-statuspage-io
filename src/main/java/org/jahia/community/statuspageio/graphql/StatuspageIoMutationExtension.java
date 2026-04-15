@@ -12,6 +12,9 @@ import java.io.IOException;
 @GraphQLDescription("Statuspage.io mutations")
 public class StatuspageIoMutationExtension {
 
+    private StatuspageIoMutationExtension() {
+    }
+
     @GraphQLField
     @GraphQLName("updateStatuspageIoConfig")
     @GraphQLNonNull

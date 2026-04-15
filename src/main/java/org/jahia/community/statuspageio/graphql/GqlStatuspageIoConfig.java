@@ -10,6 +10,7 @@ import org.jahia.modules.graphql.provider.dxm.osgi.annotations.GraphQLOsgiServic
 import javax.inject.Inject;
 
 @GraphQLDescription("Statuspage.io configuration")
+@SuppressWarnings("java:S6813")
 public class GqlStatuspageIoConfig {
 
     @Inject

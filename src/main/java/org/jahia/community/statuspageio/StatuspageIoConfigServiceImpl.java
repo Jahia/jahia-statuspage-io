@@ -52,7 +52,7 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
     }
 
     @Modified
-    protected void modified(StatuspageIoConfig config) throws Exception {
+    protected void modified(StatuspageIoConfig config) {
         if (!hash(config).equals(this.configHash)) {
             LOGGER.info("Changes detected in provider config. Statuspage.io config would be recreated");
             activate(bundleContext, config);
@@ -86,7 +86,7 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
             byte[] hashBytes = digest.digest();
             return Base64.getEncoder().encodeToString(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to find SHA-256 algorithm", e);
+            throw new IllegalStateException("Unable to find SHA-256 algorithm", e);
         }
     }
 }
