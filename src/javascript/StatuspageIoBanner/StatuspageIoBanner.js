@@ -1,6 +1,7 @@
 export function statuspageIoBanner(pageId) {
     var frame = document.createElement('iframe');
-    frame.src = 'https://' + pageId + '.statuspage.io/embed/frame';
+    var origin = 'https://' + pageId + '.statuspage.io';
+    frame.src = origin + '/embed/frame';
     frame.style.position = 'fixed';
     frame.style.border = 'none';
     frame.style.boxShadow = '0 20px 32px -8px rgba(9,20,66,0.25)';
@@ -31,6 +32,7 @@ export function statuspageIoBanner(pageId) {
 
     var actions = {
         showFrame: function () {
+            frame.style.display = 'block';
             frame.removeAttribute('aria-hidden');
             frame.tabIndex = 0;
             if (mobile) {
@@ -42,13 +44,29 @@ export function statuspageIoBanner(pageId) {
             }
         },
         dismissFrame: function () {
-            frame.style.left = '-9999px';
+            // Move focus before hiding to prevent focus loss
+            if (document.activeElement === frame || frame.contains(document.activeElement)) {
+                document.body.focus();
+            }
+            if (mobile) {
+                frame.style.left = '-9999px';
+            } else {
+                frame.style.right = '-9999px';
+            }
             frame.setAttribute('aria-hidden', 'true');
             frame.tabIndex = -1;
+            // Fully remove from accessibility tree after transition completes
+            setTimeout(function () {
+                frame.style.display = 'none';
+            }, 1000);
         }
     };
 
     window.addEventListener('message', function (event) {
+        // Validate origin before processing postMessage
+        if (event.origin !== origin) {
+            return;
+        }
         if (event.data.action && actions.hasOwnProperty(event.data.action)) {
             actions[event.data.action](event.data);
         }

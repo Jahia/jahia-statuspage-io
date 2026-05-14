@@ -21,7 +21,7 @@
 .statuspageio_error {
   font-family: 'Nunito Sans', sans-serif;
   padding: var(--spacing-medium, 16px);
-  color: #5c6370;
+  color: #4f5660;
 }
 
 .statuspageio_error {
@@ -37,9 +37,9 @@
 
   p {
     margin: 0 0 var(--spacing-small, 8px);
-    font-size: 13px;
+    font-size: 0.8125rem;
     line-height: 1.5;
-    color: #5c6370;
+    color: #4f5660;
 
     &:last-child {
       margin-bottom: 0;
@@ -47,11 +47,16 @@
   }
 
   a {
-    color: var(--color-accent, #00a0e3);
+    color: var(--color-accent, #0072b1);
     text-decoration: underline;
 
     &:hover {
-      color: var(--color-accent_dark, #0072b1);
+      color: var(--color-accent_dark, #005a8e);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #0072b1;
+      outline-offset: 2px;
     }
   }
 }
@@ -59,7 +64,7 @@
 .statuspageio_alert {
   padding: var(--spacing-small, 8px) var(--spacing-medium, 16px);
   border-radius: var(--radius, 4px);
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin-bottom: var(--spacing-medium, 16px);
   border: 1px solid transparent;
 
@@ -91,11 +96,13 @@
 .statuspageio_page_header h2 {
   margin: 0;
   padding: 0;
-  margin-left: 25px;
-  font-size: 25px;
-  line-height: 85px;
+  margin-left: 1.5625rem;
+  font-size: 1.5625rem;
+  line-height: 1.4;
   width: 80%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+:focus-visible {
+  outline: 2px solid #0072b1;
+  outline-offset: 2px;
 }

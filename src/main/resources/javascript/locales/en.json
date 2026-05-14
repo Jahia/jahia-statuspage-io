@@ -9,6 +9,7 @@
       "saved": "Configuration saved successfully.",
       "saveError": "Failed to save configuration. Please try again.",
       "cancel": "Cancel",
+      "cancelled": "Changes cancelled.",
       "loading": "Loading...",
       "error": "Error loading configuration"
     }
