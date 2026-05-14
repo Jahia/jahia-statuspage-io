@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {ApolloClient, ApolloProvider, InMemoryCache, useMutation, useQuery} from '@apollo/client';
 import {Button, Field, Input} from '@jahia/moonstone';
 import {useTranslation} from 'react-i18next';
@@ -18,6 +18,8 @@ const ConfigForm = () => {
     const [saveStatus, setSaveStatus] = useState(null); // null | 'success' | 'error'
     const [updateConfig, {loading: saving}] = useMutation(UPDATE_STATUSPAGE_CONFIG);
 
+    const statusRef = useRef(null);
+
     useEffect(() => {
         if (data?.statuspageIo?.pageId) {
             setPageId(data.statuspageIo.pageId);
@@ -25,11 +27,11 @@ const ConfigForm = () => {
     }, [data]);
 
     if (loading) {
-        return <div className={styles.statuspageio_loading}>{t('label.admin.loading')}</div>;
+        return <div className={styles.statuspageio_loading} role="status">{t('label.admin.loading')}</div>;
     }
 
     if (error) {
-        return <div className={styles.statuspageio_error}>{t('label.admin.error')}: {error.message}</div>;
+        return <div className={styles.statuspageio_error} role="alert">{t('label.admin.error')}: {error.message}</div>;
     }
 
     const handleSave = async () => {
@@ -41,6 +43,8 @@ const ConfigForm = () => {
             console.error('Failed to update Statuspage.io configuration:', err);
             setSaveStatus('error');
         }
+
+        setTimeout(() => statusRef.current?.focus(), 50);
     };
 
     const handleCancel = () => {
@@ -48,8 +52,23 @@ const ConfigForm = () => {
         setSaveStatus(null);
     };
 
+    const srLiveMsg = saveStatus === 'success' ? t('label.admin.saved') :
+        saveStatus === 'error' ? t('label.admin.saveError') : '';
+
     return (
         <div>
+            {/* Persistent live region — always in DOM so AT registers it before content changes */}
+            <div
+                ref={statusRef}
+                tabIndex={-1}
+                role={saveStatus === 'error' ? 'alert' : 'status'}
+                aria-live={saveStatus === 'error' ? 'assertive' : 'polite'}
+                aria-atomic="true"
+                className={styles.statuspageio_sr_only}
+            >
+                {srLiveMsg}
+            </div>
+
             <div className={styles.statuspageio_page_header}>
                 <h2>{t('label.admin.config')}</h2>
             </div>
@@ -59,12 +78,12 @@ const ConfigForm = () => {
                 </div>
 
                 {saveStatus === 'success' && (
-                    <div className={`${styles.statuspageio_alert} ${styles['statuspageio_alert--success']}`}>
+                    <div aria-hidden="true" className={`${styles.statuspageio_alert} ${styles['statuspageio_alert--success']}`}>
                         {t('label.admin.saved')}
                     </div>
                 )}
                 {saveStatus === 'error' && (
-                    <div className={`${styles.statuspageio_alert} ${styles['statuspageio_alert--error']}`}>
+                    <div aria-hidden="true" className={`${styles.statuspageio_alert} ${styles['statuspageio_alert--error']}`}>
                         {t('label.admin.saveError')}
                     </div>
                 )}
@@ -72,7 +91,7 @@ const ConfigForm = () => {
                 <div className={styles.statuspageio_form}>
                     <Field label={t('label.admin.pageId')} id="statuspageio-pageId">
                         <Input
-                            id="statuspageio-pageId-input"
+                            id="statuspageio-pageId"
                             value={pageId}
                             onChange={e => setPageId(e.target.value)}
                             placeholder=""
@@ -81,12 +100,14 @@ const ConfigForm = () => {
 
                     <div className={styles.statuspageio_actions}>
                         <Button
+                            type="button"
                             label={saving ? t('label.admin.saving') : t('label.admin.save')}
                             variant="primary"
                             isDisabled={saving}
                             onClick={handleSave}
                         />
                         <Button
+                            type="button"
                             label={t('label.admin.cancel')}
                             variant="secondary"
                             isDisabled={saving}

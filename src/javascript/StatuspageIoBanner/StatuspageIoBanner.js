@@ -8,7 +8,8 @@ export function statuspageIoBanner(pageId) {
     frame.style.transition = 'left 1s ease, bottom 1s ease, right 1s ease';
 
     frame.title = 'Jahia Status';
-    frame.ariaHidden = true;
+    frame.setAttribute('aria-hidden', 'true');
+    frame.tabIndex = -1;
 
     var mobile;
     if (mobile = screen.width < 450) {
@@ -30,7 +31,8 @@ export function statuspageIoBanner(pageId) {
 
     var actions = {
         showFrame: function () {
-            frame.tabIndex = '0';
+            frame.removeAttribute('aria-hidden');
+            frame.tabIndex = 0;
             if (mobile) {
                 frame.style.left = '0';
                 frame.style.bottom = '0';
@@ -41,7 +43,8 @@ export function statuspageIoBanner(pageId) {
         },
         dismissFrame: function () {
             frame.style.left = '-9999px';
-            frame.tabIndex = '-1';
+            frame.setAttribute('aria-hidden', 'true');
+            frame.tabIndex = -1;
         }
     };
 
