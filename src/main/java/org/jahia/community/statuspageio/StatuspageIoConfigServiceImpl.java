@@ -21,11 +21,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.regex.Pattern;
 
 @Component(service = StatuspageIoConfigService.class, configurationPid = "org.jahia.community.statuspageio", immediate = true)
 @Designate(ocd = StatuspageIoConfig.class)
 public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService {
     public static final Logger LOGGER = LoggerFactory.getLogger(StatuspageIoConfigServiceImpl.class);
+    // Statuspage.io page identifiers are DNS subdomain labels: lowercase alphanumerics and hyphens, 1-63 chars.
+    private static final Pattern PAGE_ID_PATTERN = Pattern.compile("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$");
     private StatuspageIoConfig config;
     private BundleContext bundleContext;
     private String configHash;
@@ -66,6 +69,9 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
 
     @Override
     public void updatePageId(String pageId) throws IOException {
+        if (pageId == null || !PAGE_ID_PATTERN.matcher(pageId).matches()) {
+            throw new IllegalArgumentException("Invalid Statuspage.io pageId; expected DNS subdomain label (a-z, 0-9, hyphen, 1-63 chars)");
+        }
         Configuration configuration = configurationAdmin.getConfiguration("org.jahia.community.statuspageio", null);
         Dictionary<String, Object> properties = configuration.getProperties();
         if (properties == null) {
