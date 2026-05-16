@@ -111,7 +111,7 @@ const ConfigForm = () => {
                     <Field label={t('label.admin.pageId')} id="statuspageio-pageId">
                         <Input
                             inputRef={pageIdRef}
-                            id="statuspageio-pageId"
+                            id="statuspageio-pageId-input"
                             value={pageId}
                             required
                             aria-required="true"

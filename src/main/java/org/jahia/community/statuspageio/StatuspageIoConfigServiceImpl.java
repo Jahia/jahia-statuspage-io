@@ -69,7 +69,10 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
 
     @Override
     public void updatePageId(String pageId) throws IOException {
-        if (pageId == null || !PAGE_ID_PATTERN.matcher(pageId).matches()) {
+        if (pageId == null) {
+            throw new IllegalArgumentException("Invalid Statuspage.io pageId; must not be null");
+        }
+        if (!pageId.isEmpty() && !PAGE_ID_PATTERN.matcher(pageId).matches()) {
             throw new IllegalArgumentException("Invalid Statuspage.io pageId; expected DNS subdomain label (a-z, 0-9, hyphen, 1-63 chars)");
         }
         Configuration configuration = configurationAdmin.getConfiguration("org.jahia.community.statuspageio", null);
