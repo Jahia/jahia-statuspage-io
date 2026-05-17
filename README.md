@@ -56,6 +56,8 @@ mutation {
 }
 ```
 
+The `pageId` is validated server-side: it must be either an empty string (to clear the configuration) or a DNS subdomain label matching `^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$` (lowercase alphanumerics and hyphens, 1–63 characters). Invalid values are rejected with an `IllegalArgumentException`.
+
 ## Administration panel
 
 A configuration panel is available in the Jahia administration under **Configuration → Statuspage.io Configuration**. It allows administrators to view and update the page ID through a form backed by the GraphQL mutation above.

@@ -19,7 +19,7 @@ Jahia OSGi module that integrates Statuspage.io: injects a status banner on the 
 | `StatuspageIoConfigServiceImpl` | `@Activate`/`@Modified` lifecycle; reads config, exposes `getConfig()` and `updatePageId(String)` |
 | `StatuspageIoQueryExtension` | GraphQL query (no auth required) |
 | `StatuspageIoMutationExtension` | GraphQL mutation (admin) |
-| `GqlStatuspageIoConfig` | Return type containing `pageId` and other fields |
+| `GqlStatuspageIoConfig` | GraphQL output type, single field `pageId` (non-null) |
 
 `updatePageId` persists via `ConfigurationAdmin.getConfiguration("org.jahia.community.statuspageio")` — not JCR storage.
 
@@ -27,8 +27,8 @@ Jahia OSGi module that integrates Statuspage.io: injects a status banner on the 
 
 | Operation | Name | Notes |
 |-----------|------|-------|
-| Query | `statuspageIo` → `GqlStatuspageIoConfig{pageId, ...}` | **No permission required** — used by the banner on public pages |
-| Mutation | `updateStatuspageIoConfig(pageId!)` → Boolean | Requires `admin` permission |
+| Query | `statuspageIo` → `GqlStatuspageIoConfig{pageId}` | **No permission required** — used by the banner on public pages |
+| Mutation | `updateStatuspageIoConfig(pageId: String!)` → Boolean | Requires `admin` permission; validates `pageId` against `^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$` (empty string allowed to clear) |
 
 ## Frontend Registrations
 
@@ -76,3 +76,5 @@ yarn install
 - The `@Modified` callback in `StatuspageIoConfigServiceImpl` only re-runs `activate()` if the config hash changes — idempotent, avoids unnecessary restarts
 - If `StatuspageIoConfigService` is not yet registered when the banner callback fires (during Jahia startup), `pageId` will be empty and the banner will not render
 - CSS Modules: match in Cypress with `[class*="statuspageio_..."]`
+- `updatePageId` enforces a DNS-subdomain-label regex on `pageId` to prevent JS injection through the embed URL; an empty string is accepted and clears the configuration
+- The widget nodetype `jnt:statuspageIoWidget` (defined in `META-INF/definitions.cnd`) has a single mandatory `pageId` string property and is rendered via `jnt_statuspageIoWidget/html/statuspageIoWidget.jsp`
