@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 @Component(service = StatuspageIoConfigService.class, configurationPid = "org.jahia.community.statuspageio", immediate = true)
 @Designate(ocd = StatuspageIoConfig.class)
 public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService {
-    public static final Logger LOGGER = LoggerFactory.getLogger(StatuspageIoConfigServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatuspageIoConfigServiceImpl.class);
     // Statuspage.io page identifiers are DNS subdomain labels: lowercase alphanumerics and hyphens, 1-63 chars.
     private static final Pattern PAGE_ID_PATTERN = Pattern.compile("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$");
     private StatuspageIoConfig config;
@@ -37,7 +37,6 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
     private ConfigurationAdmin configurationAdmin;
 
     @Activate
-    @Modified
     public void activate(BundleContext bundleContext, StatuspageIoConfig config) {
         this.bundleContext = bundleContext;
         if (config != null) {
@@ -51,7 +50,6 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
         } else {
             LOGGER.error("Statuspage.io configuration is missing");
         }
-
     }
 
     @Modified

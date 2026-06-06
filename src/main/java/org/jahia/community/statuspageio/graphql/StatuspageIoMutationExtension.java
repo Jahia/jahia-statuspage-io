@@ -22,6 +22,9 @@ public class StatuspageIoMutationExtension {
     @GraphQLRequiresPermission("admin")
     public static boolean updateStatuspageIoConfig(@GraphQLName("pageId") @GraphQLNonNull String pageId) throws IOException {
         final StatuspageIoConfigService configService = BundleUtils.getOsgiService(StatuspageIoConfigService.class, null);
+        if (configService == null) {
+            throw new IllegalStateException("StatuspageIoConfigService is not available; the module may still be starting up");
+        }
         configService.updatePageId(pageId);
         return true;
     }
