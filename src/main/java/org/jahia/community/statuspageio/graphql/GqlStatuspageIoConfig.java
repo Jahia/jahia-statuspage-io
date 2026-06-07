@@ -22,6 +22,9 @@ public class GqlStatuspageIoConfig {
     @GraphQLNonNull
     @GraphQLDescription("Statuspage.io page identifier used to build the embed URL")
     public String getPageId() {
+        if (configService.getConfig() == null) {
+            return "";
+        }
         return configService.getConfig().pageId();
     }
 
