@@ -9,7 +9,7 @@
     <groupId>org.jahia.community</groupId>
     <artifactId>jahia-statuspage-io</artifactId>
     <name>Jahia Statuspage.io</name>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>This is the custom module (Jahia Statuspage.io) for running on a Jahia server and retrieve the status from Statuspage.io.</description>
 
