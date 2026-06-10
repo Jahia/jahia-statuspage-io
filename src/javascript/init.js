@@ -31,7 +31,7 @@ export default function () {
     registry.add('adminRoute', 'jahia-statuspage-io-config', {
         targets: ['administration-server-configuration:100'],
         icon: window.jahia.moonstone.toIconComponent('Settings'),
-        requiredPermission: 'admin',
+        requiredPermission: 'statuspageAdmin',
         label: 'jahia-statuspage-io:label.admin.config',
         isSelectable: true,
         render: () => React.createElement(StatuspageIoConfigPanel)
