@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 @Designate(ocd = StatuspageIoConfig.class)
 public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatuspageIoConfigServiceImpl.class);
+    static final String CONFIG_PID = "org.jahia.community.statuspageio";
+    static final String PAGE_ID_PROPERTY = "pageId";
     // Statuspage.io page identifiers are DNS subdomain labels: lowercase alphanumerics and hyphens, 1-63 chars.
     private static final Pattern PAGE_ID_PATTERN = Pattern.compile("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$");
     private StatuspageIoConfig config;
@@ -73,12 +75,12 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
         if (!pageId.isEmpty() && !PAGE_ID_PATTERN.matcher(pageId).matches()) {
             throw new IllegalArgumentException("Invalid Statuspage.io pageId; expected DNS subdomain label (a-z, 0-9, hyphen, 1-63 chars)");
         }
-        Configuration configuration = configurationAdmin.getConfiguration("org.jahia.community.statuspageio", null);
+        Configuration configuration = configurationAdmin.getConfiguration(CONFIG_PID, null);
         Dictionary<String, Object> properties = configuration.getProperties();
         if (properties == null) {
             properties = new Hashtable<>();
         }
-        properties.put("pageId", pageId);
+        properties.put(PAGE_ID_PROPERTY, pageId);
         configuration.update(properties);
     }
 
@@ -89,7 +91,7 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
     private String hash(StatuspageIoConfig config) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            digest.update(config.pageId().getBytes(StandardCharsets.UTF_8));
+            digest.update(StringUtils.defaultString(config.pageId()).getBytes(StandardCharsets.UTF_8));
             byte[] hashBytes = digest.digest();
             return Base64.getEncoder().encodeToString(hashBytes);
         } catch (NoSuchAlgorithmException e) {
