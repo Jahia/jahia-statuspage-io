@@ -44,7 +44,10 @@ public class StatuspageIoConfigServiceImpl implements StatuspageIoConfigService 
         }
     }
 
-    // Volatile: written by the SCR thread (@Activate/@Modified), read by GraphQL threads.
+    // Volatile reference to an IMMUTABLE snapshot: written by the SCR thread (@Activate/@Modified),
+    // read by GraphQL threads. Safe publication via volatile of an immutable object is correct, so
+    // S3077 ("volatile is not enough") is a false positive here.
+    @SuppressWarnings("java:S3077")
     private volatile ConfigSnapshot snapshot;
 
     @Reference

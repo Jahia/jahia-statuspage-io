@@ -7,36 +7,43 @@ import graphql.annotations.annotationTypes.GraphQLNonNull;
 import graphql.annotations.annotationTypes.GraphQLTypeExtension;
 import org.jahia.community.statuspageio.StatuspageIoConfigService;
 import org.jahia.modules.graphql.provider.dxm.DXGraphQLProvider;
-import org.jahia.modules.graphql.provider.dxm.osgi.annotations.GraphQLOsgiService;
 import org.jahia.modules.graphql.provider.dxm.security.GraphQLRequiresPermission;
-
-import javax.inject.Inject;
+import org.jahia.osgi.BundleUtils;
 
 @GraphQLTypeExtension(DXGraphQLProvider.Mutation.class)
 @GraphQLDescription("Statuspage.io mutations")
-// graphql-java-annotations requires field injection for @GraphQLOsgiService; constructor injection
-// is not supported by the framework at this point.
-@SuppressWarnings("java:S6813")
 public class StatuspageIoMutationExtension {
 
-    // HIGH-1: replaced BundleUtils.getOsgiService static lookup with the same
-    // @Inject @GraphQLOsgiService field-injection pattern used in GqlStatuspageIoConfig.
-    @Inject
-    @GraphQLOsgiService
-    private StatuspageIoConfigService configService;
+    private StatuspageIoMutationExtension() {
+        // Static GraphQL type-extension; not instantiated.
+    }
 
+    /**
+     * Updates the Statuspage.io page id. Requires the {@code statuspageAdmin} permission.
+     *
+     * <p>The service is resolved via {@link BundleUtils#getOsgiService} rather than
+     * {@code @GraphQLOsgiService} field injection: graphql-java-annotations invokes
+     * {@code @GraphQLField} methods on a mutation type-extension statically, so field
+     * injection does not apply here (unlike the {@code GqlStatuspageIoConfig} return type).
+     *
+     * @param pageId the Statuspage.io page id (validated by the service; empty clears it)
+     * @return {@code true} on success
+     * @throws IllegalStateException    if the config service is unavailable (module starting up)
+     * @throws IllegalArgumentException if {@code pageId} fails validation
+     */
     @GraphQLField
     @GraphQLName("updateStatuspageIoConfig")
     @GraphQLNonNull
     @GraphQLDescription("Update the Statuspage.io module configuration")
     @GraphQLRequiresPermission("statuspageAdmin")
-    public boolean updateStatuspageIoConfig(@GraphQLName("pageId") @GraphQLNonNull String pageId) {
+    public static boolean updateStatuspageIoConfig(@GraphQLName("pageId") @GraphQLNonNull String pageId) {
+        final StatuspageIoConfigService configService = BundleUtils.getOsgiService(StatuspageIoConfigService.class, null);
         if (configService == null) {
             throw new IllegalStateException(
                     "StatuspageIoConfigService is not available; the module may still be starting up");
         }
-        // updatePageId throws IllegalArgumentException on invalid input and
-        // StatuspageIoConfigException (unchecked) on ConfigurationAdmin failure.
+        // updatePageId throws IllegalArgumentException on invalid input and the unchecked
+        // StatuspageIoConfigException on a ConfigurationAdmin failure.
         configService.updatePageId(pageId);
         return true;
     }

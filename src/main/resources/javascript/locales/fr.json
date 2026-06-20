@@ -1,0 +1,17 @@
+{
+  "label": {
+    "admin": {
+      "config": "Statuspage.io",
+      "intro": "Configurez l'identifiant de page Statuspage.io utilisé pour intégrer le widget d'état dans l'interface d'administration de Jahia.",
+      "pageId": "Identifiant de page",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Configuration enregistrée avec succès.",
+      "saveError": "Échec de l'enregistrement de la configuration. Veuillez réessayer.",
+      "cancel": "Annuler",
+      "cancelled": "Modifications annulées.",
+      "loading": "Chargement…",
+      "error": "Erreur lors du chargement de la configuration"
+    }
+  }
+}
