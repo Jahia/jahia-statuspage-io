@@ -11,6 +11,8 @@ import org.jahia.modules.graphql.provider.dxm.osgi.annotations.GraphQLOsgiServic
 import javax.inject.Inject;
 
 @GraphQLDescription("Statuspage.io configuration")
+// graphql-java-annotations requires field injection for @GraphQLOsgiService; constructor injection
+// is not supported by the framework at this point.
 @SuppressWarnings("java:S6813")
 public class GqlStatuspageIoConfig {
 
@@ -31,9 +33,5 @@ public class GqlStatuspageIoConfig {
             return "";
         }
         return config.pageId();
-    }
-
-    public StatuspageIoConfigService getConfigService() {
-        return configService;
     }
 }

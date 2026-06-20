@@ -66,4 +66,13 @@ class GqlStatuspageIoConfigTest {
 
         assertThat(gql.getPageId()).isEqualTo("my-status-page");
     }
+
+    @Test
+    @DisplayName("getPageId returns non-null — GraphQL @GraphQLNonNull contract is upheld")
+    void getPageId_alwaysNonNull() throws Exception {
+        // Even with a null service the method must never return null.
+        GqlStatuspageIoConfig gql = withService(null);
+
+        assertThat(gql.getPageId()).isNotNull();
+    }
 }
