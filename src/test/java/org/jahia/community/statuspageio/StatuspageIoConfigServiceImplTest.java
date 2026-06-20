@@ -2,6 +2,7 @@ package org.jahia.community.statuspageio;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,85 +34,199 @@ class StatuspageIoConfigServiceImplTest {
         configurationAdmin = mock(ConfigurationAdmin.class);
         configuration = mock(Configuration.class);
         service = new StatuspageIoConfigServiceImpl();
-        injectConfigurationAdmin(service, configurationAdmin);
+        injectField(service, "configurationAdmin", configurationAdmin);
     }
 
-    private static void injectConfigurationAdmin(StatuspageIoConfigServiceImpl target, ConfigurationAdmin admin) throws Exception {
-        Field field = StatuspageIoConfigServiceImpl.class.getDeclaredField("configurationAdmin");
+    private static void injectField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
-        field.set(target, admin);
+        field.set(target, value);
     }
 
-    @Test
-    @DisplayName("updatePageId rejects null pageId")
-    void updatePageId_null_throws() {
-        assertThatThrownBy(() -> service.updatePageId(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("must not be null");
+    private static StatuspageIoConfig configWith(String pageId) {
+        StatuspageIoConfig cfg = mock(StatuspageIoConfig.class);
+        when(cfg.pageId()).thenReturn(pageId);
+        return cfg;
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "Has Space",
-            "UPPER",
-            "under_score",
-            "-leadinghyphen",
-            "trailinghyphen-",
-            "javascript:alert(1)",
-            "a/b",
-            "https://evil.example.com"
-    })
-    @DisplayName("updatePageId rejects values that are not DNS subdomain labels")
-    void updatePageId_invalid_throws(String invalid) {
-        assertThatThrownBy(() -> service.updatePageId(invalid))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("DNS subdomain label");
+    // -------------------------------------------------------------------------
+    // @Activate
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("activate")
+    class ActivateTests {
+
+        @Test
+        @DisplayName("sets snapshot so getConfig returns the activated config")
+        void activate_setsConfig() {
+            StatuspageIoConfig cfg = configWith("my-page");
+
+            service.activate(cfg);
+
+            assertThat(service.getConfig()).isSameAs(cfg);
+        }
+
+        @Test
+        @DisplayName("getConfig returns null before activate is called")
+        void getConfig_beforeActivate_returnsNull() {
+            assertThat(service.getConfig()).isNull();
+        }
+
+        @Test
+        @DisplayName("activate with null config leaves getConfig returning null")
+        void activate_nullConfig_getConfigReturnsNull() {
+            service.activate(null);
+
+            assertThat(service.getConfig()).isNull();
+        }
     }
 
-    @Test
-    @DisplayName("updatePageId rejects labels longer than 63 characters")
-    void updatePageId_tooLong_throws() {
-        String tooLong = "a".repeat(64);
-        assertThatThrownBy(() -> service.updatePageId(tooLong))
-                .isInstanceOf(IllegalArgumentException.class);
+    // -------------------------------------------------------------------------
+    // @Modified
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("modified")
+    class ModifiedTests {
+
+        @Test
+        @DisplayName("replaces snapshot when pageId hash changes")
+        void modified_hashChanged_updatesSnapshot() {
+            StatuspageIoConfig original = configWith("old-page");
+            service.activate(original);
+
+            StatuspageIoConfig updated = configWith("new-page");
+            service.modified(updated);
+
+            assertThat(service.getConfig()).isSameAs(updated);
+        }
+
+        @Test
+        @DisplayName("retains existing snapshot when config hash is unchanged")
+        void modified_sameHash_keepsExistingSnapshot() {
+            StatuspageIoConfig original = configWith("same-page");
+            service.activate(original);
+
+            // A different mock object but identical pageId → same hash.
+            StatuspageIoConfig duplicate = configWith("same-page");
+            service.modified(duplicate);
+
+            // The snapshot should NOT have been swapped out.
+            assertThat(service.getConfig()).isSameAs(original);
+        }
+
+        @Test
+        @DisplayName("modified with no prior activate (null snapshot) installs new snapshot")
+        void modified_noActivate_installsSnapshot() {
+            StatuspageIoConfig cfg = configWith("first-page");
+
+            service.modified(cfg);
+
+            assertThat(service.getConfig()).isSameAs(cfg);
+        }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"abc123", "my-status-page", "a", "x9"})
-    @DisplayName("updatePageId persists valid pageId via ConfigurationAdmin")
-    void updatePageId_valid_persists(String valid) throws IOException {
-        when(configurationAdmin.getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, null))
-                .thenReturn(configuration);
-        when(configuration.getProperties()).thenReturn(null);
+    // -------------------------------------------------------------------------
+    // updatePageId — validation
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("updatePageId — validation")
+    class ValidationTests {
 
-        service.updatePageId(valid);
+        @Test
+        @DisplayName("rejects null pageId")
+        void updatePageId_null_throws() {
+            assertThatThrownBy(() -> service.updatePageId(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("must not be null");
+        }
 
-        ArgumentCaptor<Dictionary<String, Object>> captor = ArgumentCaptor.forClass(Dictionary.class);
-        verify(configuration).update(captor.capture());
-        assertThat(captor.getValue().get(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY)).isEqualTo(valid);
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "Has Space",
+                "UPPER",
+                "under_score",
+                "-leadinghyphen",
+                "trailinghyphen-",
+                "javascript:alert(1)",
+                "a/b",
+                "https://evil.example.com"
+        })
+        @DisplayName("rejects values that are not DNS subdomain labels")
+        void updatePageId_invalid_throws(String invalid) {
+            assertThatThrownBy(() -> service.updatePageId(invalid))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("DNS subdomain label");
+        }
+
+        @Test
+        @DisplayName("rejects labels longer than 63 characters")
+        void updatePageId_tooLong_throws() {
+            String tooLong = "a".repeat(64);
+            assertThatThrownBy(() -> service.updatePageId(tooLong))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("does not touch ConfigurationAdmin when validation fails")
+        void updatePageId_invalid_doesNotPersist() throws Exception {
+            assertThatThrownBy(() -> service.updatePageId("Invalid Value"))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(configurationAdmin, never())
+                    .getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, "?");
+        }
     }
 
-    @Test
-    @DisplayName("updatePageId accepts empty string to clear configuration")
-    void updatePageId_empty_clears() throws IOException {
-        Dictionary<String, Object> existing = new Hashtable<>();
-        existing.put(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY, "old-value");
-        when(configurationAdmin.getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, null))
-                .thenReturn(configuration);
-        when(configuration.getProperties()).thenReturn(existing);
+    // -------------------------------------------------------------------------
+    // updatePageId — persistence
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("updatePageId — persistence")
+    class PersistenceTests {
 
-        service.updatePageId("");
+        @ParameterizedTest
+        @ValueSource(strings = {"abc123", "my-status-page", "a", "x9"})
+        @DisplayName("persists valid pageId via ConfigurationAdmin")
+        void updatePageId_valid_persists(String valid) throws Exception {
+            when(configurationAdmin.getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, "?"))
+                    .thenReturn(configuration);
+            when(configuration.getProperties()).thenReturn(null);
 
-        verify(configuration).update(existing);
-        assertThat(existing.get(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY)).isEqualTo("");
-    }
+            service.updatePageId(valid);
 
-    @Test
-    @DisplayName("updatePageId does not touch ConfigurationAdmin when validation fails")
-    void updatePageId_invalid_doesNotPersist() throws IOException {
-        assertThatThrownBy(() -> service.updatePageId("Invalid Value"))
-                .isInstanceOf(IllegalArgumentException.class);
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Dictionary<String, Object>> captor =
+                    ArgumentCaptor.forClass(Dictionary.class);
+            verify(configuration).update(captor.capture());
+            assertThat(captor.getValue().get(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY))
+                    .isEqualTo(valid);
+        }
 
-        verify(configurationAdmin, never()).getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, null);
+        @Test
+        @DisplayName("accepts empty string to clear configuration")
+        void updatePageId_empty_clears() throws Exception {
+            Dictionary<String, Object> existing = new Hashtable<>();
+            existing.put(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY, "old-value");
+            when(configurationAdmin.getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, "?"))
+                    .thenReturn(configuration);
+            when(configuration.getProperties()).thenReturn(existing);
+
+            service.updatePageId("");
+
+            verify(configuration).update(existing);
+            assertThat(existing.get(StatuspageIoConfigServiceImpl.PAGE_ID_PROPERTY)).isEqualTo("");
+        }
+
+        @Test
+        @DisplayName("wraps ConfigurationAdmin IOException in StatuspageIoConfigException")
+        void updatePageId_ioException_wrappedAsUnchecked() throws Exception {
+            when(configurationAdmin.getConfiguration(StatuspageIoConfigServiceImpl.CONFIG_PID, "?"))
+                    .thenThrow(new IOException("disk full"));
+
+            assertThatThrownBy(() -> service.updatePageId("valid-page"))
+                    .isInstanceOf(StatuspageIoConfigException.class)
+                    .hasMessageContaining("Failed to update")
+                    .hasCauseInstanceOf(IOException.class);
+        }
     }
 }

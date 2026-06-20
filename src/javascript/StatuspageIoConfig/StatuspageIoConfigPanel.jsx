@@ -15,8 +15,7 @@ const ConfigForm = () => {
     const {t} = useTranslation('jahia-statuspage-io');
     const {data, loading, error} = useQuery(GET_STATUSPAGE_CONFIG, {fetchPolicy: 'network-only'});
     const [pageId, setPageId] = useState('');
-    const [saveStatus, setSaveStatus] = useState(null); // null | 'success' | 'error' | 'cancelled'
-    const [saveAttempt, setSaveAttempt] = useState(0);
+    const [saveStatus, setSaveStatus] = useState(null); // Null | 'success' | 'error' | 'cancelled'
     const [updateConfig, {loading: saving}] = useMutation(UPDATE_STATUSPAGE_CONFIG);
 
     const saveBtnRef = useRef(null);
@@ -32,6 +31,15 @@ const ConfigForm = () => {
         }
     }, [data]);
 
+    // Move focus once the save outcome is known, keyed on saveStatus (no setTimeout hack).
+    useEffect(() => {
+        if (saveStatus === 'success') {
+            saveBtnRef.current?.focus();
+        } else if (saveStatus === 'error') {
+            pageIdRef.current?.focus();
+        }
+    }, [saveStatus]);
+
     if (loading) {
         return <div className={styles.statuspageio_loading} role="status">{t('label.admin.loading')}</div>;
     }
@@ -41,23 +49,11 @@ const ConfigForm = () => {
     }
 
     const handleSave = async () => {
-        const nextAttempt = saveAttempt + 1;
-        setSaveAttempt(nextAttempt);
         try {
             const result = await updateConfig({variables: {pageId}});
-            const status = result.data?.updateStatuspageIoConfig ? 'success' : 'error';
-            setSaveStatus(status);
-            setTimeout(() => {
-                if (status === 'success') {
-                    saveBtnRef.current?.focus();
-                } else {
-                    pageIdRef.current?.focus();
-                }
-            }, 50);
-        } catch (err) {
-            console.error('Failed to update Statuspage.io configuration:', err);
+            setSaveStatus(result.data?.updateStatuspageIoConfig ? 'success' : 'error');
+        } catch {
             setSaveStatus('error');
-            setTimeout(() => pageIdRef.current?.focus(), 50);
         }
     };
 
@@ -66,26 +62,29 @@ const ConfigForm = () => {
         setSaveStatus('cancelled');
     };
 
+    const politeMessage = saveStatus === 'success' ?
+        t('label.admin.saved') :
+        (saveStatus === 'cancelled' ? t('label.admin.cancelled') : '');
+    const alertMessage = saveStatus === 'error' ? t('label.admin.saveError') : '';
+
     return (
-        <div>
-            {/* Separate always-in-DOM live regions with saveAttempt key to force re-announcement */}
-            <div
-                key={`status-${saveAttempt}`}
+        <div className={styles.statuspageio_root}>
+            {/* Single persistent live regions, updated via state (never remounted). */}
+            <output
                 role="status"
                 aria-live="polite"
                 aria-atomic="true"
                 className={styles.statuspageio_sr_only}
             >
-                {saveStatus === 'success' ? t('label.admin.saved') : saveStatus === 'cancelled' ? t('label.admin.cancelled') : ''}
-            </div>
+                {politeMessage}
+            </output>
             <div
-                key={`alert-${saveAttempt}`}
                 role="alert"
                 aria-live="assertive"
                 aria-atomic="true"
                 className={styles.statuspageio_sr_only}
             >
-                {saveStatus === 'error' ? t('label.admin.saveError') : ''}
+                {alertMessage}
             </div>
 
             <div className={styles.statuspageio_page_header}>
@@ -110,20 +109,20 @@ const ConfigForm = () => {
                 <div className={styles.statuspageio_form}>
                     <Field label={t('label.admin.pageId')} id="statuspageio-pageId">
                         <Input
+                            required
                             inputRef={pageIdRef}
                             id="statuspageio-pageId-input"
                             value={pageId}
-                            required
                             aria-required="true"
                             aria-invalid={saveStatus === 'error' ? 'true' : undefined}
                             aria-describedby={saveStatus === 'error' ? 'statuspageio-pageId-error' : undefined}
-                            aria-label={t('label.admin.pageId')}
-                            onChange={e => setPageId(e.target.value)}
+                            aria-labelledby="statuspageio-pageId"
                             placeholder=""
+                            onChange={e => setPageId(e.target.value)}
                         />
                     </Field>
                     {saveStatus === 'error' && (
-                        <span id="statuspageio-pageId-error" className={styles.statuspageio_sr_only} role="alert">
+                        <span id="statuspageio-pageId-error" className={styles.statuspageio_sr_only}>
                             {t('label.admin.saveError')}
                         </span>
                     )}
@@ -151,6 +150,11 @@ const ConfigForm = () => {
     );
 };
 
+/**
+ * Admin panel for configuring the Statuspage.io page identifier.
+ * Takes no props; wires the form to the module GraphQL endpoint via Apollo.
+ * @returns {JSX.Element}
+ */
 export const StatuspageIoConfigPanel = () => (
     <ApolloProvider client={client}>
         <ConfigForm/>

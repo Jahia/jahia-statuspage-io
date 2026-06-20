@@ -49,7 +49,7 @@ query {
 }
 ```
 
-**Mutation — update the page ID (requires `admin` permission):**
+**Mutation — update the page ID (requires `statuspageAdmin` permission):**
 ```graphql
 mutation {
   updateStatuspageIoConfig(pageId: "newPageId")

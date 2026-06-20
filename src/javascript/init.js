@@ -7,7 +7,6 @@ import {GET_STATUSPAGE_CONFIG} from './StatuspageIoConfig/StatuspageIoConfigPane
 
 window.jahia.i18n.loadNamespaces('jahia-statuspage-io');
 
-
 const STATUSPAGE_PAGE_ID = fetch('/modules/graphql', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -21,11 +20,13 @@ const STATUSPAGE_PAGE_ID = fetch('/modules/graphql', {
     });
 
 export default function () {
-    console.debug('%c jahia-statuspage-io: activation in progress', 'color: #463CBA');
-
     registry.add('callback', 'jahia-statuspage-io', {
         targets: ['jahiaApp-init:60'],
-        callback: () => STATUSPAGE_PAGE_ID.then(pageId => statuspageIoBanner(pageId))
+        callback: () => STATUSPAGE_PAGE_ID.then(pageId => {
+            if (pageId) {
+                statuspageIoBanner(pageId);
+            }
+        })
     });
 
     registry.add('adminRoute', 'jahia-statuspage-io-config', {
@@ -37,5 +38,3 @@ export default function () {
         render: () => React.createElement(StatuspageIoConfigPanel)
     });
 }
-
-console.debug('%c jahia-statuspage-io registered', 'color: #463CBA');
