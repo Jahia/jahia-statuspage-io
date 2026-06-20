@@ -13,7 +13,7 @@ const STATUSPAGE_PAGE_ID = fetch('/modules/graphql', {
     body: JSON.stringify({query: print(GET_STATUSPAGE_CONFIG)})
 })
     .then(response => response.json())
-    .then(data => data.data.statuspageIo.pageId)
+    .then(data => data.data.statuspageIo.config.pageId)
     .catch(error => {
         console.error('jahia-statuspage-io: failed to fetch Statuspage.io page ID', error);
         return '';

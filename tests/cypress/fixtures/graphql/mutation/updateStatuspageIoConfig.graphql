@@ -1,3 +1,5 @@
 mutation UpdateStatuspageIoConfig($pageId: String!) {
-    updateStatuspageIoConfig(pageId: $pageId)
+    statuspageIo {
+        updateConfig(pageId: $pageId)
+    }
 }

@@ -68,7 +68,7 @@ describe('Statuspage.io — permission enforcement', () => {
         it('allows the gated mutation for a user granted only the module permission', () => {
             updateConfigAs(ALLOWED_USER, VALID_PAGE_ID).then((result: never) => {
                 expect(errorsOf(result), 'should have no errors').to.have.length(0);
-                expect((result as {data: {updateStatuspageIoConfig: boolean}}).data.updateStatuspageIoConfig).to.eq(true);
+                expect((result as {data: {statuspageIo: {updateConfig: boolean}}}).data.statuspageIo.updateConfig).to.eq(true);
             });
         });
     });

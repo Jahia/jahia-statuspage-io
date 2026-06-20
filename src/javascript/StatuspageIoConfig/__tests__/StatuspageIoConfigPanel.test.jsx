@@ -12,14 +12,14 @@ describe('StatuspageIoConfigPanel', () => {
         mockUseQuery.mockReset();
         mockUseMutation.mockReset();
         mockUseQuery.mockReturnValue({
-            data: {statuspageIo: {pageId: 'initial-id'}},
+            data: {statuspageIo: {config: {pageId: 'initial-id'}}},
             loading: false,
             error: undefined
         });
     });
 
     test('announces success in the live region after a successful save', async () => {
-        const updateConfig = jest.fn(() => Promise.resolve({data: {updateStatuspageIoConfig: true}}));
+        const updateConfig = jest.fn(() => Promise.resolve({data: {statuspageIo: {updateConfig: true}}}));
         mockUseMutation.mockReturnValue([updateConfig, {loading: false}]);
 
         render(<StatuspageIoConfigPanel/>);

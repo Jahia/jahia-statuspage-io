@@ -26,8 +26,8 @@ const ConfigForm = () => {
     }, [t]);
 
     useEffect(() => {
-        if (data?.statuspageIo?.pageId) {
-            setPageId(data.statuspageIo.pageId);
+        if (data?.statuspageIo?.config?.pageId) {
+            setPageId(data.statuspageIo.config.pageId);
         }
     }, [data]);
 
@@ -51,14 +51,14 @@ const ConfigForm = () => {
     const handleSave = async () => {
         try {
             const result = await updateConfig({variables: {pageId}});
-            setSaveStatus(result.data?.updateStatuspageIoConfig ? 'success' : 'error');
+            setSaveStatus(result.data?.statuspageIo?.updateConfig ? 'success' : 'error');
         } catch {
             setSaveStatus('error');
         }
     };
 
     const handleCancel = () => {
-        setPageId(data?.statuspageIo?.pageId || '');
+        setPageId(data?.statuspageIo?.config?.pageId || '');
         setSaveStatus('cancelled');
     };
 

@@ -39,7 +39,7 @@ describe('Statuspage.io Configuration', () => {
 
         // Verify persistence via GraphQL
         cy.apollo({query: getStatuspageIoConfig})
-            .its('data.statuspageIo.pageId')
+            .its('data.statuspageIo.config.pageId')
             .should('equal', 'my-page-id');
     });
 
@@ -70,12 +70,12 @@ describe('Statuspage.io Configuration', () => {
         cy.apollo({
             mutation: updateStatuspageIoConfig,
             variables: {pageId: 'api-page-id'}
-        }).then((result: {data: {updateStatuspageIoConfig: boolean}}) => {
-            expect(result.data.updateStatuspageIoConfig).to.be.true;
+        }).then((result: {data: {statuspageIo: {updateConfig: boolean}}}) => {
+            expect(result.data.statuspageIo.updateConfig).to.be.true;
         });
 
         cy.apollo({query: getStatuspageIoConfig})
-            .its('data.statuspageIo.pageId')
+            .its('data.statuspageIo.config.pageId')
             .should('equal', 'api-page-id');
     });
 
@@ -95,7 +95,7 @@ describe('Statuspage.io Configuration', () => {
         cy.contains('Configuration saved successfully.').should('be.visible');
 
         cy.apollo({query: getStatuspageIoConfig})
-            .its('data.statuspageIo.pageId')
+            .its('data.statuspageIo.config.pageId')
             .should('be.empty');
     });
 
