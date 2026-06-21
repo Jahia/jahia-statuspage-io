@@ -1,5 +1,7 @@
 query GetStatuspageIoConfig {
     statuspageIo {
-        pageId
+        config {
+            pageId
+        }
     }
 }
