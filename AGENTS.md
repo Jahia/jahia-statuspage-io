@@ -4,7 +4,7 @@ Jahia OSGi module that integrates Statuspage.io: injects a status banner on the 
 
 ## Key Facts
 
-- **artifactId**: `jahia-statuspage-io` | **version**: `1.0.1-SNAPSHOT`
+- **artifactId**: `jahia-statuspage-io` | **version**: `1.0.3-SNAPSHOT`
 - **Java package**: `org.jahia.community.statuspageio`
 - **jahia-depends**: `default,graphql-dxm-provider`
 - **OSGi config PID**: `org.jahia.community.statuspageio`
@@ -28,7 +28,7 @@ Jahia OSGi module that integrates Statuspage.io: injects a status banner on the 
 | Operation | Name | Notes |
 |-----------|------|-------|
 | Query | `statuspageIo` → `GqlStatuspageIoConfig{pageId}` | **No permission required** — used by the banner on public pages |
-| Mutation | `updateStatuspageIoConfig(pageId: String!)` → Boolean | Requires `admin` permission; validates `pageId` against `^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$` (empty string allowed to clear) |
+| Mutation | `updateStatuspageIoConfig(pageId: String!)` → Boolean | Requires `statuspageAdmin` permission; validates `pageId` against `^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$` (empty string allowed to clear) |
 
 ## Frontend Registrations
 
@@ -77,4 +77,4 @@ yarn install
 - If `StatuspageIoConfigService` is not yet registered when the banner callback fires (during Jahia startup), `pageId` will be empty and the banner will not render
 - CSS Modules: match in Cypress with `[class*="statuspageio_..."]`
 - `updatePageId` enforces a DNS-subdomain-label regex on `pageId` to prevent JS injection through the embed URL; an empty string is accepted and clears the configuration
-- The widget nodetype `jnt:statuspageIoWidget` (defined in `META-INF/definitions.cnd`) has a single mandatory `pageId` string property and is rendered via `jnt_statuspageIoWidget/html/statuspageIoWidget.jsp`
+- The widget nodetype `jnt:statuspageIoWidget` (defined in `META-INF/definitions.cnd`) has a single mandatory `pageId` string property and is rendered via `jnt_statuspageIoWidget/html/statuspageIoWidget.jsp`. `pageId` carries a JCR value constraint `[a-z0-9-]{1,63}` (write-side XSS hardening, SUPPORT-646) so an unsafe value is rejected at save time; the JSP allowlist is the matching render-side layer (defense in depth)
