@@ -2,4 +2,13 @@
 <jmix = 'http://www.jahia.org/jahia/mix/1.0'>
 
 [jnt:statuspageIoWidget] > jnt:content, jmix:droppableContent
- - pageId (string) mandatory
+ // pageId value constraint (write-side XSS hardening, SUPPORT-646): JCR rejects any value that is
+ // not a safe DNS-subdomain label (a-z, 0-9, hyphen; length 1-63) at setValue/save time. This is a
+ // deliberate defense-in-depth layer so the render-path allowlist in statuspageIoWidget.jsp is no
+ // longer the SOLE guard against stored XSS. The regex is kept IDENTICAL to that JSP allowlist
+ // ([a-z0-9-], 1-63 chars) so write-path and render-path agree exactly for this per-node property.
+ // NOTE (D7 residual): the GLOBAL OSGi-config path uses a stricter DNS regex
+ // (^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$, no leading/trailing hyphen) and the JS util is looser
+ // (allows uppercase). Fully unifying all four validators via one shared constant is not achievable
+ // across CND/Java/JSP/JS; that convergence is left as a maintainer follow-up.
+ - pageId (string) mandatory < '[a-z0-9-]{1,63}'
