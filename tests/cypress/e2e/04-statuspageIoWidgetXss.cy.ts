@@ -29,22 +29,23 @@ import {enableModule, editSite} from '@jahia/cypress';
 
 const WEBSITE_PATH = '/sites/digitall/home.html';
 const COMPONENT_PARENT = '/sites/digitall/home/footer-1';
-const COMPONENT_NAME = 'statuspage-widget-xss';
-const COMPONENT_PATH = `${COMPONENT_PARENT}/${COMPONENT_NAME}`;
 
 // Each entry is a distinct stored-XSS / host-swap / malformed attempt that MUST be refused by
 // the render-path allowlist. `marker` is a distinctive substring that must never reach the DOM.
-const UNSAFE_PAGE_IDS: Array<{label: string; pageId: string; marker: string}> = [
-    {label: 'single-quote string-literal breakout', pageId: "x';window.__xss=1;//", marker: 'window.__xss'},
-    {label: 'script-tag breakout', pageId: 'a</script><script>window.__xss=1</script>', marker: '__xss'},
-    {label: 'host swap via dot', pageId: 'evil.com', marker: 'evil.com'},
-    {label: 'host swap via @', pageId: 'x@evil.com', marker: '@evil.com'},
-    {label: 'host swap via double slash', pageId: 'x//evil.com', marker: '//evil.com'},
-    {label: 'uppercase (outside a-z allowlist)', pageId: 'EvilPage', marker: 'EvilPage'},
-    {label: 'over 63 characters', pageId: 'a'.repeat(64), marker: 'a'.repeat(64)}
+// `name` is a UNIQUE node name per case so each attempt renders its OWN freshly-created node
+// (never a stale sibling from a previous case).
+const UNSAFE_PAGE_IDS: Array<{label: string; name: string; pageId: string; marker: string}> = [
+    {label: 'single-quote string-literal breakout', name: 'xss-quote', pageId: "x';window.__xss=1;//", marker: 'window.__xss'},
+    {label: 'script-tag breakout', name: 'xss-scripttag', pageId: 'a</script><script>window.__xss=1</script>', marker: '__xss'},
+    {label: 'host swap via dot', name: 'xss-dot', pageId: 'evil.com', marker: 'evil.com'},
+    {label: 'host swap via @', name: 'xss-at', pageId: 'x@evil.com', marker: '@evil.com'},
+    {label: 'host swap via double slash', name: 'xss-slash', pageId: 'x//evil.com', marker: '//evil.com'},
+    {label: 'uppercase (outside a-z allowlist)', name: 'xss-upper', pageId: 'EvilPage', marker: 'EvilPage'},
+    {label: 'over 63 characters', name: 'xss-toolong', pageId: 'a'.repeat(64), marker: 'a'.repeat(64)}
 ];
 
 const VALID_PAGE_ID = 'w05wsjm4g1q6';
+const VALID_NAME = 'xss-valid-control';
 
 describe('Statuspage.io Widget — pageId injection defense (SEC-1)', () => {
     const siteKey = 'digitall';
@@ -52,41 +53,50 @@ describe('Statuspage.io Widget — pageId injection defense (SEC-1)', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const addStatuspageIoWidget: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/addStatuspageIoWidget.graphql');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const deleteNode: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/deleteNode.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const publishNode: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/publishNode.graphql');
 
-    const removeWidget = () => {
-        // Best-effort removal + propagate to live so each case starts clean.
-        cy.request({
-            method: 'POST',
-            url: '/modules/graphql',
-            body: {query: `mutation { jcr(workspace: EDIT) { mutateNode(pathOrId: "${COMPONENT_PATH}") { delete } } }`},
-            auth: {user: 'root', pass: Cypress.env('SUPER_USER_PASSWORD')},
-            failOnStatusCode: false,
-            log: false
+    // Remove a widget node and propagate the deletion to live. Uses cy.apollo (authenticated
+    // session), NOT cy.request+basic-auth: the API security filter denies basic-auth JCR
+    // mutations, which would silently leave the node in place. Best-effort — a graphql error
+    // (e.g. node already absent) is caught by cy.apollo and does not fail the test.
+    const removeWidget = (name: string) => {
+        cy.apollo({mutation: deleteNode, variables: {path: `${COMPONENT_PARENT}/${name}`}});
+        cy.apollo({mutation: publishNode, variables: {path: COMPONENT_PARENT}});
+    };
+
+    // Create a widget with the given pageId and make it live: addChild publishes the child
+    // inline, and publishing the parent flushes the footer-1 area-fragment output cache so the
+    // freshly-created child is actually rendered on the live page (not served stale from cache).
+    const createWidget = (name: string, pageId: string) => {
+        cy.apollo({
+            mutation: addStatuspageIoWidget,
+            variables: {parentPath: COMPONENT_PARENT, name, pageId}
         });
         cy.apollo({mutation: publishNode, variables: {path: COMPONENT_PARENT}});
     };
+
+    const allNames = [...UNSAFE_PAGE_IDS.map(u => u.name), VALID_NAME];
 
     before(() => {
         cy.login();
         enableModule('jahia-statuspage-io', siteKey);
         editSite(siteKey, {serverName: 'jahia'});
-        removeWidget();
+        // Clear any nodes left over from a previous run.
+        allNames.forEach(name => removeWidget(name));
     });
 
-    afterEach(() => {
+    after(() => {
         cy.login();
-        removeWidget();
+        allNames.forEach(name => removeWidget(name));
     });
 
-    UNSAFE_PAGE_IDS.forEach(({label, pageId, marker}) => {
+    UNSAFE_PAGE_IDS.forEach(({label, name, pageId, marker}) => {
         it(`refuses to render an unsafe pageId: ${label}`, () => {
             cy.login();
             // The mutation persists the unsafe pageId unchanged (no server-side write validation).
-            cy.apollo({
-                mutation: addStatuspageIoWidget,
-                variables: {parentPath: COMPONENT_PARENT, name: COMPONENT_NAME, pageId}
-            });
+            createWidget(name, pageId);
 
             // Fail loudly if any injected script actually executes an alert.
             const onAlert = cy.stub().as('alert');
@@ -105,20 +115,22 @@ describe('Statuspage.io Widget — pageId injection defense (SEC-1)', () => {
             });
             // No injected alert fired.
             cy.get('@alert').should('not.have.been.called');
+
+            // Clean up this case's node so the next attempt starts from a known-empty area.
+            removeWidget(name);
         });
     });
 
     it('DOES render the iframe for a valid pageId (positive control)', () => {
         cy.login();
-        cy.apollo({
-            mutation: addStatuspageIoWidget,
-            variables: {parentPath: COMPONENT_PARENT, name: COMPONENT_NAME, pageId: VALID_PAGE_ID}
-        });
+        createWidget(VALID_NAME, VALID_PAGE_ID);
 
         cy.visit(WEBSITE_PATH);
 
-        cy.get('iframe[title="Jahia Status"]')
+        cy.get('iframe[title="Jahia Status"]', {timeout: 20000})
             .should('exist')
             .and('have.attr', 'src', `https://${VALID_PAGE_ID}.statuspage.io/embed/frame`);
+
+        removeWidget(VALID_NAME);
     });
 });
