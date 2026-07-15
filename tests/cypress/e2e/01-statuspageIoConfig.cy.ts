@@ -134,14 +134,20 @@ describe('Statuspage.io Configuration', () => {
             .should('exist')
             .and('have.attr', 'src', 'https://w05wsjm4g1q6.statuspage.io/embed/frame');
 
-        // Simulate the postMessage that statuspage.io sends to reveal the banner
+        // The back-office banner (StatuspageIoBanner.js) enforces
+        // event.origin === 'https://w05wsjm4g1q6.statuspage.io' before handling any action.
+        // A postMessage sent from the Cypress app window carries the Jahia app origin, which
+        // never matches — so showFrame must NOT fire and the iframe must stay off-screen.
         cy.window().then(win => {
             win.postMessage({action: 'showFrame'}, '*');
         });
 
-        // After showFrame the iframe should slide on-screen (right moves from -9999px to 60px)
+        // Origin guard holds: right stays at its initial -9999px (never slides to 60px).
+        // The matching-origin reveal path is unit-tested in Jest (StatuspageIoBanner.test.js,
+        // G-Je6) where MessageEvent.origin can be controlled — a browser postMessage cannot
+        // forge the statuspage.io origin, so this e2e only proves the negative here.
         cy.get('iframe[title="Jahia Status"]').should(iframe => {
-            expect(iframe[0].style.right).to.equal('60px');
+            expect(iframe[0].style.right).to.equal('-9999px');
         });
     });
 });
