@@ -67,6 +67,8 @@ module.exports = (env, argv) => {
                             loader: 'css-loader',
                             options: {
                                 modules: {
+                                    namedExport: false,
+                                    exportLocalsConvention: 'as-is',
                                     mode: 'local'
                                 }
                             }
